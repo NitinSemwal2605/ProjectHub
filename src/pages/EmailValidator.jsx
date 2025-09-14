@@ -1,0 +1,256 @@
+import React, { useState, useEffect } from 'react';
+
+export default function EmailValidator() {
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [touched, setTouched] = useState({});
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+
+  // Validate form on change
+  useEffect(() => {
+    setErrors(validate(form));
+  }, [form]);
+
+  function validate(values) {
+    const errs = {};
+    if (!values.name.trim()) {
+      errs.name = 'Name is required';
+    } else if (values.name.trim().length < 2) {
+      errs.name = 'Use at least 2 characters';
+    }
+
+    if (!values.email.trim()) {
+      errs.email = 'Email is required';
+    } else if (!isValidEmail(values.email.trim())) {
+      errs.email = 'Email looks invalid';
+    }
+
+    const pw = values.password;
+    if (!pw) {
+      errs.password = 'Password is required';
+    } else {
+      if (pw.length < 8) errs.password = 'Password must be at least 8 characters';
+      else {
+        const checks = [
+          /[a-z]/.test(pw),
+          /[A-Z]/.test(pw),
+          /[0-9]/.test(pw),
+          /[^A-Za-z0-9]/.test(pw),
+        ];
+        if (checks.filter(Boolean).length < 3) {
+          errs.password = 'Use a mix of uppercase, lowercase, numbers and symbols';
+        }
+      }
+    }
+
+    if (!values.confirm) {
+      errs.confirm = 'Confirm your password';
+    } else if (values.confirm !== values.password) {
+      errs.confirm = 'Passwords do not match';
+    }
+
+    return errs;
+  }
+
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function passwordScore(pw) {
+    let score = 0;
+    if (!pw) return score;
+    if (pw.length >= 8) score++;
+    if (/[a-z]/.test(pw)) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    return score;
+  }
+
+  function passwordLabel(score) {
+    if (score <= 1) return { label: 'Very weak', color: 'bg-red-500' };
+    if (score === 2) return { label: 'Weak', color: 'bg-orange-400' };
+    if (score === 3) return { label: 'Medium', color: 'bg-yellow-400' };
+    if (score === 4) return { label: 'Strong', color: 'bg-green-400' };
+    return { label: 'Very strong', color: 'bg-green-600' };
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((s) => ({ ...s, [name]: value }));
+  };
+
+  const handleBlur = (e) => {
+    setTouched((t) => ({ ...t, [e.target.name]: true }));
+  };
+
+  const handleSubmit = (e) => {
+  e.preventDefault();
+  setTouched({ name: true, email: true, password: true, confirm: true });
+  const errs = validate(form);
+  setErrors(errs);
+  setSubmitted(true);
+
+  if (Object.keys(errs).length === 0) {
+    // Log credentials to console here
+    console.log('Submitted credentials:', form);
+
+    setSuccessMsg('Form submitted successfully — email validated!');
+    setTimeout(() => {
+      setSuccessMsg('');
+      setForm({ name: '', email: '', password: '', confirm: '' });
+      setTouched({});
+      setSubmitted(false);
+    }, 2500);
+  } else {
+    setSuccessMsg('');
+  }
+};
+
+
+  const pwScore = passwordScore(form.password);
+  const pwMeta = passwordLabel(pwScore);
+
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center p-6 bg-black text-green-100">
+      <div className="w-full max-w-2xl bg-gradient-to-b from-black/80 to-green-900/10 border border-green-700 rounded-2xl p-8 shadow-lg">
+        <h2 className="text-3xl font-bold mb-2 text-green-200">Email Validator & Form Validation</h2>
+        <p className="mb-6 text-green-300">A reactive form that validates email, password strength, and confirm password.</p>
+
+        {successMsg && (
+          <div role="status" className="mb-6 p-4 rounded-md bg-green-600 text-black font-semibold">
+            {successMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate>
+          {/* Name */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1" htmlFor="name">Name</label>
+            <input
+              id="name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              autoComplete="name"
+              placeholder="Your name"
+              className={`w-full bg-transparent border px-4 py-2 rounded-md placeholder-green-500 text-green-100 focus:outline-none focus:ring-2 ${
+                touched.name && errors.name ? 'border-red-500 ring-red-400' : 'border-green-700 ring-green-400'
+              }`}
+              aria-invalid={errors.name ? 'true' : 'false'}
+            />
+            {touched.name && errors.name && (
+              <p className="mt-1 text-xs text-red-400" role="alert">{errors.name}</p>
+            )}
+          </div>
+
+          {/* Email */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1" htmlFor="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              className={`w-full bg-transparent border px-4 py-2 rounded-md placeholder-green-500 text-green-100 focus:outline-none focus:ring-2 ${
+                touched.email && errors.email ? 'border-red-500 ring-red-400' : 'border-green-700 ring-green-400'
+              }`}
+              aria-invalid={errors.email ? 'true' : 'false'}
+            />
+            {touched.email && errors.email && (
+              <p className="mt-1 text-xs text-red-400" role="alert">{errors.email}</p>
+            )}
+            {!errors.email && form.email && touched.email && (
+              <p className="mt-1 text-xs text-green-300">Looks good ✅</p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1" htmlFor="password">Password</label>
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="Create a strong password"
+                className={`w-full bg-transparent border px-4 py-2 rounded-md placeholder-green-500 text-green-100 focus:outline-none focus:ring-2 ${
+                  touched.password && errors.password ? 'border-red-500 ring-red-400' : 'border-green-700 ring-green-400'
+                }`}
+                aria-invalid={errors.password ? 'true' : 'false'}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-2 top-2 text-sm text-green-200 hover:text-green-100"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {touched.password && errors.password && (
+              <p className="mt-1 text-xs text-red-400" role="alert">{errors.password}</p>
+            )}
+
+            {/* Password Strength Meter */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-green-300">Strength: {pwMeta.label}</span>
+                <span
+                  className={`w-16 h-2 rounded-full ${pwMeta.color}`}
+                  aria-hidden="true"
+                />
+              </div>
+              <progress
+                max="5"
+                value={pwScore}
+                className="w-full h-2 rounded bg-green-800"
+                aria-label="Password strength meter"
+              />
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-1" htmlFor="confirm">Confirm Password</label>
+            <input
+              id="confirm"
+              name="confirm"
+              value={form.confirm}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              type="password"
+              autoComplete="new-password"
+              placeholder="Repeat your password"
+              className={`w-full bg-transparent border px-4 py-2 rounded-md placeholder-green-500 text-green-100 focus:outline-none focus:ring-2 ${
+                touched.confirm && errors.confirm ? 'border-red-500 ring-red-400' : 'border-green-700 ring-green-400'
+              }`}
+              aria-invalid={errors.confirm ? 'true' : 'false'}
+            />
+            {touched.confirm && errors.confirm && (
+              <p className="mt-1 text-xs text-red-400" role="alert">{errors.confirm}</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-green-600 hover:bg-green-700 text-black font-bold py-3 rounded-lg shadow-lg transition-colors"
+          >
+            Submit
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
