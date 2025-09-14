@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { QRCode } from 'react-qrcode-logo'; // or install: npm install react-qrcode-logo
 
 export default function QRGenerator() {
