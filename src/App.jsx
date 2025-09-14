@@ -17,7 +17,7 @@ function App() {
             {/* Project Routes (later we’ll add these) */}
             <Route path="/email-validator" element={<EmailValidator />} />
             <Route path="/clock" element={<Clock />} />
-            <Route path="/gambling" element={<div>Gambling</div>} />
+            <Route path="/gambling" element={<div>Coming Soon</div>} />
             <Route path="/qr-generator" element={<QRGenerator />} />
             <Route path="/password-generator" element={<PasswordGenerator />} />
             <Route path="/focus-timer" element={<FocusTimer />} />
